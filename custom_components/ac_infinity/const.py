@@ -30,6 +30,9 @@ class MdiIcon:
     POWER_PLUG = "mdi:power-plug"
     WAVES = "mdi:waves"
     POWER = "mdi:power"
+    PH = "mdi:ph"
+    SINE_WAVE = "mdi:sine-wave"
+    WATER_OPACITY = "mdi:water-opacity"
 
 
 class ConfigurationKey:
@@ -120,6 +123,13 @@ class SensorType:
     SOIL = 10
     CO2 = 11
     LIGHT = 12
+    HYDRO_PH = 13
+    HYDRO_EC_US = 14
+    HYDRO_EC_MS = 15
+    HYDRO_TDS_PPM = 16
+    HYDRO_TDS_PPT = 17
+    HYDRO_WATER_TEMPERATURE_F = 18
+    HYDRO_WATER_TEMPERATURE_C = 19
     WATER = 20
 
 
@@ -136,6 +146,10 @@ class SensorReferenceKey:
     LIGHT_SENSOR = "lightSensor"
     WATER = "waterSensor"
     SOIL = "soilSensor"
+    HYDRO_PH = "hydroPh"
+    HYDRO_EC = "hydroEc"
+    HYDRO_TDS = "hydroTds"
+    HYDRO_WATER_TEMPERATURE = "hydroWaterTemperature"
 
 
 # noinspection SpellCheckingInspection
