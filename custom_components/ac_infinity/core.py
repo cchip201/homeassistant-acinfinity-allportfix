@@ -10,7 +10,7 @@ from typing import Any, Callable
 import aiohttp
 import async_timeout
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -353,7 +353,7 @@ class ACInfinityService:
 
     def get_controller_property(
         self, controller_id: str | int, property_key: str, default_value=None
-    ):
+    ) -> Any:
         """gets a property value for a given controller, if both the property and controller exist.
 
         Args:
@@ -401,7 +401,7 @@ class ACInfinityService:
         sensor_type: int,
         property_key: str,
         default_value=None,
-    ):
+    ) -> Any:
         """gets a property value for a given sensor on a controller, if the property, controller, access port, and sensor all exist.
 
         Args:
@@ -445,7 +445,7 @@ class ACInfinityService:
         device_port: int,
         property_key: str,
         default_value=None,
-    ):
+    ) -> Any:
         """gets a property value for a given port on a controller, if the property, controller and port all exist.
 
         Args:
@@ -476,7 +476,7 @@ class ACInfinityService:
 
     def get_controller_setting(
         self, controller_id: str | int, setting_key: str, default_value=None
-    ):
+    ) -> Any:
         """gets a property value for a given controller, if both the property and controller exist.
 
         Args:
@@ -505,7 +505,7 @@ class ACInfinityService:
         device_port: int,
         setting_key: str,
         default_value=None,
-    ):
+    ) -> Any:
         """gets a property value for a given device, if both the setting and device exist.
 
         Args:
@@ -551,7 +551,7 @@ class ACInfinityService:
         device_port: int,
         setting_key: str,
         default_value=None,
-    ):
+    ) -> Any:
         """gets the current set value for a given device setting
 
         Args:
@@ -1151,15 +1151,15 @@ class ACInfinityEntities(list[ACInfinityEntity]):
 
 
 def enabled_fn_sensor(entry: ConfigEntry, device_id: str, entity_config_key: str) -> bool:
-    return entry.data[ConfigurationKey.ENTITIES][device_id][entity_config_key] != EntityConfigValue.Disable
+    return entry.data[ConfigurationKey.ENTITIES][device_id][entity_config_key] != EntityConfigValue.DISABLE
 
 
 def enabled_fn_control(entry: ConfigEntry, device_id: str, entity_config_key: str) -> bool:
     setting = entry.data[ConfigurationKey.ENTITIES][device_id][entity_config_key]
-    return setting == EntityConfigValue.All or setting == EntityConfigValue.SensorsAndControls
+    return setting == EntityConfigValue.ALL or setting == EntityConfigValue.SENSORS_AND_CONTROLS
 
 
 def enabled_fn_setting(entry: ConfigEntry, device_id: str, entity_config_key: str) -> bool:
     setting = entry.data[ConfigurationKey.ENTITIES][device_id][entity_config_key]
-    return setting == EntityConfigValue.All or setting == EntityConfigValue.SensorsAndSettings
+    return setting == EntityConfigValue.ALL or setting == EntityConfigValue.SENSORS_AND_SETTINGS
 

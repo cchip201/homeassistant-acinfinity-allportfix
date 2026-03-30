@@ -1,5 +1,6 @@
 import asyncio
 from asyncio import Future
+from copy import deepcopy
 from types import MappingProxyType
 from unittest.mock import AsyncMock, MagicMock
 
@@ -56,7 +57,7 @@ def setup(mocker: MockFixture):
 
     config_entry = ConfigEntry(
         entry_id=ENTRY_ID,
-        data=CONFIG_ENTRY_DATA,
+        data=deepcopy(CONFIG_ENTRY_DATA),
         domain=DOMAIN,
         minor_version=0,
         source="",
@@ -213,12 +214,12 @@ class TestInit:
         # Verify device configuration structure
         for device_id in [DEVICE_ID, AI_DEVICE_ID]:
             device_config = entities_config[str(device_id)]
-            assert device_config["controller"] == EntityConfigValue.SensorsAndSettings
-            assert device_config["sensors"] == EntityConfigValue.SensorsOnly
-            assert device_config["port_1"] == EntityConfigValue.All
-            assert device_config["port_2"] == EntityConfigValue.All
-            assert device_config["port_3"] == EntityConfigValue.All
-            assert device_config["port_4"] == EntityConfigValue.All
+            assert device_config["controller"] == EntityConfigValue.SENSORS_AND_SETTINGS
+            assert device_config["sensors"] == EntityConfigValue.SENSORS_ONLY
+            assert device_config["port_1"] == EntityConfigValue.ALL
+            assert device_config["port_2"] == EntityConfigValue.ALL
+            assert device_config["port_3"] == EntityConfigValue.ALL
+            assert device_config["port_4"] == EntityConfigValue.ALL
 
         # Verify service methods were called
         mock_ac_infinity.refresh.assert_called_once()
@@ -279,7 +280,7 @@ class TestInit:
         # Create a version 2 config entry (current version)
         v2_config_entry = ConfigEntry(
             entry_id=ENTRY_ID,
-            data=CONFIG_ENTRY_DATA,  # Already has entity configuration
+            data=deepcopy(CONFIG_ENTRY_DATA),  # Already has entity configuration
             domain=DOMAIN,
             minor_version=0,
             source="",
@@ -310,7 +311,7 @@ class TestInit:
     async def test_initialize_new_devices_multiple_new_devices(self, mocker: MockFixture):
         """Test adding multiple new devices with different port counts during setup"""
         # Create a config entry with no existing devices
-        empty_data = CONFIG_ENTRY_DATA.copy()
+        empty_data = deepcopy(CONFIG_ENTRY_DATA)
         empty_data[ConfigurationKey.ENTITIES] = {}
 
         config_entry = ConfigEntry(
@@ -399,19 +400,19 @@ class TestInit:
 
         # Verify first device (2 ports)
         device1_config = new_data[ConfigurationKey.ENTITIES][str(new_device_id_1)]
-        assert device1_config["controller"] == EntityConfigValue.SensorsOnly
-        assert device1_config["sensors"] == EntityConfigValue.SensorsOnly
-        assert device1_config["port_1"] == EntityConfigValue.SensorsOnly
-        assert device1_config["port_2"] == EntityConfigValue.SensorsOnly
+        assert device1_config["controller"] == EntityConfigValue.SENSORS_ONLY
+        assert device1_config["sensors"] == EntityConfigValue.SENSORS_ONLY
+        assert device1_config["port_1"] == EntityConfigValue.SENSORS_ONLY
+        assert device1_config["port_2"] == EntityConfigValue.SENSORS_ONLY
         assert "port_3" not in device1_config  # Should not have port_3
 
         # Verify second device (6 ports)
         device2_config = new_data[ConfigurationKey.ENTITIES][str(new_device_id_2)]
-        assert device2_config["controller"] == EntityConfigValue.SensorsOnly
-        assert device2_config["sensors"] == EntityConfigValue.SensorsOnly
-        assert device2_config["port_1"] == EntityConfigValue.SensorsOnly
-        assert device2_config["port_2"] == EntityConfigValue.SensorsOnly
-        assert device2_config["port_3"] == EntityConfigValue.SensorsOnly
-        assert device2_config["port_4"] == EntityConfigValue.SensorsOnly
-        assert device2_config["port_5"] == EntityConfigValue.SensorsOnly
-        assert device2_config["port_6"] == EntityConfigValue.SensorsOnly
+        assert device2_config["controller"] == EntityConfigValue.SENSORS_ONLY
+        assert device2_config["sensors"] == EntityConfigValue.SENSORS_ONLY
+        assert device2_config["port_1"] == EntityConfigValue.SENSORS_ONLY
+        assert device2_config["port_2"] == EntityConfigValue.SENSORS_ONLY
+        assert device2_config["port_3"] == EntityConfigValue.SENSORS_ONLY
+        assert device2_config["port_4"] == EntityConfigValue.SENSORS_ONLY
+        assert device2_config["port_5"] == EntityConfigValue.SENSORS_ONLY
+        assert device2_config["port_6"] == EntityConfigValue.SENSORS_ONLY

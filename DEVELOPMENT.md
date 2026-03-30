@@ -50,8 +50,7 @@ The integration polls the AC Infinity cloud API and exposes device state, enviro
 ### IDE Configuration
 
 - Use VS Code with Python extension
-- Configure mypy for strict type checking
-- Enable ruff and black formatters
+- Configure pyright for type checking
 - Set up pytest for test running
 
 ### Bruno API Collection Setup
@@ -223,11 +222,9 @@ Note: Callback signatures vary by entity scope:
 
 ### Style Guidelines
 
-- **Quotes**: Single quotes preferred (`ruff Q000`)
-- **Linting**: `ruff` as primary linter with custom rules in `pyproject.toml`
-- **Formatting**: `black` for consistent formatting
-- **Type Hints**: Strict mypy checking with Python 3.13 type annotations
-- **Imports**: Organized and linted automatically
+- **Formatting**: Follow the existing code style in the repository
+- **Type Hints**: `pyright` checking with Python 3.13 type annotations
+- **Imports**: Keep imports organized and readable
 
 ### Naming Conventions
 
@@ -279,8 +276,8 @@ async def test_entity_value(setup):
 ### Running Tests
 
 ```bash
-# Run all tests with coverage
-pytest --cov
+# Run all tests with coverage XML report (used by SonarQube)
+pytest --cov=custom_components/ac_infinity --cov-report=xml --cov-report=term
 
 # Run specific test file
 pytest tests/test_sensor.py -v
@@ -306,9 +303,8 @@ pytest -v
 ### CI/CD
 
 GitHub Actions runs:
-- `pytest --cov` for testing
-- `ruff check` for linting
-- `mypy` for type checking
-- Coverage reporting
+- `pytest --cov=custom_components/ac_infinity --cov-report=xml --cov-report=term` for testing and coverage collection
+- `pyright` for type checking
+- Qodana scan and quality gate to block PRs when conditions are not met
 
 Access Home Assistant at `http://localhost:8123`
