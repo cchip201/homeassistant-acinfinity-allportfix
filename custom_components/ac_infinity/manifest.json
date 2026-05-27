@@ -2,13 +2,13 @@
   "domain": "ac_infinity",
   "name": "AC Infinity",
   "codeowners": [
-    "@dalinicus"
+    "@cchip201"
   ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/dalinicus/homeassistant-acinfinity",
+  "documentation": "https://github.com/cchip201/homeassistant-acinfinity-allportfix",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/dalinicus/homeassistant-acinfinity",
+  "issue_tracker": "https://github.com/cchip201/homeassistant-acinfinity-allportfix/issues",
   "requirements": [],
-  "version": "2.2.0"
+  "version": "2.2.1"
 }
