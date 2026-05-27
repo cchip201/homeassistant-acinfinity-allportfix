@@ -59,8 +59,31 @@ class ACInfinityController:
         self._controller_type = controller_json[ControllerPropertyKey.DEVICE_TYPE]
         self._identifier = (DOMAIN, self._controller_id)
 
-        devices = controller_json[ControllerPropertyKey.DEVICE_INFO][ControllerPropertyKey.PORTS] or []
-        self._devices = [ACInfinityDevice(self, device)for device in devices]
+        devices = controller_json[ControllerPropertyKey.DEVICE_INFO].get(ControllerPropertyKey.PORTS) or []
+        port_count = controller_json.get(ControllerPropertyKey.PORT_COUNT, 4)
+        if not devices:
+            devices = [
+                {
+                    DevicePropertyKey.PORT: port_num,
+                    DevicePropertyKey.NAME: f"Port {port_num}",
+                    DevicePropertyKey.ONLINE: 1,
+                    DevicePropertyKey.STATE: 0,
+                    DevicePropertyKey.REMAINING_TIME: 0,
+                    DevicePropertyKey.SPEAK: 0
+                }
+                for port_num in range(1, port_count + 1)
+            ]
+
+        devices.insert(0, {
+            DevicePropertyKey.PORT: 0,
+            DevicePropertyKey.NAME: "ALL",
+            DevicePropertyKey.ONLINE: 1,
+            DevicePropertyKey.STATE: 0,
+            DevicePropertyKey.REMAINING_TIME: 0,
+            DevicePropertyKey.SPEAK: 0
+        })
+
+        self._devices = [ACInfinityDevice(self, device) for device in devices]
 
         self._device_info = DeviceInfo(
             identifiers={self._identifier},
@@ -608,6 +631,15 @@ class ACInfinityService:
                     # retrieve and set controller settings; temperature, humidity, and vpd offsets
                     controller_settings_json = await self._client.get_device_mode_settings(controller_id, 0)
                     self._device_settings[(controller_id, 0)] = controller_settings_json[DeviceControlKey.DEV_SETTING]
+                    self._device_controls[(controller_id, 0)] = controller_settings_json
+                    self._device_properties[(controller_id, 0)] = {
+                        DevicePropertyKey.PORT: 0,
+                        DevicePropertyKey.NAME: "ALL",
+                        DevicePropertyKey.ONLINE: 1,
+                        DevicePropertyKey.STATE: 0,
+                        DevicePropertyKey.REMAINING_TIME: 0,
+                        DevicePropertyKey.SPEAK: 0
+                    }
 
                     # controller AI will have a sensor array.
                     if ControllerPropertyKey.SENSORS in controller_properties_json[ControllerPropertyKey.DEVICE_INFO]:
