@@ -10,5 +10,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/cchip201/homeassistant-acinfinity-allportfix/issues",
   "requirements": [],
-  "version": "2.2.4"
+  "version": "2.2.5"
 }

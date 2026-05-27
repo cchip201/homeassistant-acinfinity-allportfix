@@ -41,7 +41,7 @@ class TestNumbers:
             test_objects.entities.add_entities_callback,
         )
 
-        assert len(test_objects.entities._added_entities) == 91
+        assert len(test_objects.entities._added_entities) == 113
 
     @pytest.mark.parametrize(
         "setting", [DeviceControlKey.OFF_SPEED, DeviceControlKey.ON_SPEED]

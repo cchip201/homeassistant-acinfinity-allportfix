@@ -41,7 +41,7 @@ class TestSwitches:
             test_objects.entities.add_entities_callback,
         )
 
-        assert len(test_objects.entities._added_entities) == 48
+        assert len(test_objects.entities._added_entities) == 60
 
     @pytest.mark.parametrize(
         "setting",

@@ -37,7 +37,7 @@ class TestTimes:
             test_objects.entities.add_entities_callback,
         )
 
-        assert len(test_objects.entities._added_entities) == 8
+        assert len(test_objects.entities._added_entities) == 10
 
     @pytest.mark.parametrize(
         "key", [DeviceControlKey.SCHEDULED_START_TIME, DeviceControlKey.SCHEDULED_END_TIME]
