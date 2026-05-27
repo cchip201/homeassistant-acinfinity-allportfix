@@ -74,14 +74,15 @@ class ACInfinityController:
                 for port_num in range(1, port_count + 1)
             ]
 
-        devices.insert(0, {
-            DevicePropertyKey.PORT: 0,
-            DevicePropertyKey.NAME: "ALL",
-            DevicePropertyKey.ONLINE: 1,
-            DevicePropertyKey.STATE: 0,
-            DevicePropertyKey.REMAINING_TIME: 0,
-            DevicePropertyKey.SPEAK: 0
-        })
+        if not any(d.get(DevicePropertyKey.PORT) == 0 for d in devices):
+            devices.insert(0, {
+                DevicePropertyKey.PORT: 0,
+                DevicePropertyKey.NAME: "ALL",
+                DevicePropertyKey.ONLINE: 1,
+                DevicePropertyKey.STATE: 0,
+                DevicePropertyKey.REMAINING_TIME: 0,
+                DevicePropertyKey.SPEAK: 0
+            })
 
         self._devices = [ACInfinityDevice(self, device) for device in devices]
 
