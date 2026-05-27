@@ -1201,15 +1201,16 @@ class ACInfinityEntities(list[ACInfinityEntity]):
 
 
 def enabled_fn_sensor(entry: ConfigEntry, device_id: str, entity_config_key: str) -> bool:
-    return entry.data[ConfigurationKey.ENTITIES][device_id][entity_config_key] != EntityConfigValue.DISABLE
+    setting = entry.data.get(ConfigurationKey.ENTITIES, {}).get(device_id, {}).get(entity_config_key, EntityConfigValue.ALL)
+    return setting != EntityConfigValue.DISABLE
 
 
 def enabled_fn_control(entry: ConfigEntry, device_id: str, entity_config_key: str) -> bool:
-    setting = entry.data[ConfigurationKey.ENTITIES][device_id][entity_config_key]
-    return setting == EntityConfigValue.ALL or setting == EntityConfigValue.SENSORS_AND_CONTROLS
+    setting = entry.data.get(ConfigurationKey.ENTITIES, {}).get(device_id, {}).get(entity_config_key, EntityConfigValue.ALL)
+    return setting in (EntityConfigValue.ALL, EntityConfigValue.SENSORS_AND_CONTROLS)
 
 
 def enabled_fn_setting(entry: ConfigEntry, device_id: str, entity_config_key: str) -> bool:
-    setting = entry.data[ConfigurationKey.ENTITIES][device_id][entity_config_key]
-    return setting == EntityConfigValue.ALL or setting == EntityConfigValue.SENSORS_AND_SETTINGS
+    setting = entry.data.get(ConfigurationKey.ENTITIES, {}).get(device_id, {}).get(entity_config_key, EntityConfigValue.ALL)
+    return setting in (EntityConfigValue.ALL, EntityConfigValue.SENSORS_AND_SETTINGS)
 
