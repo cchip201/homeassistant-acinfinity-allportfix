@@ -435,14 +435,14 @@ class TestACInfinity:
         assert device.controller_id == str(DEVICE_ID)
         assert device.controller_name == DEVICE_NAME
         assert device.mac_addr == MAC_ADDR
-        assert [port.device_port for port in device.devices] == [1, 2, 3, 4]
+        assert [port.device_port for port in device.devices] == [0, 1, 2, 3, 4]
 
     async def test_controller_devices_property_returns_all_ports(self, mock_client):
         """controller.devices property should return all USB-C ports"""
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
 
-        assert len(controller.devices) == 4
-        assert [device.device_port for device in controller.devices] == [1, 2, 3, 4]
+        assert len(controller.devices) == 5
+        assert [device.device_port for device in controller.devices] == [0, 1, 2, 3, 4]
 
         # Verify each device has the correct controller reference
         for device in controller.devices:
