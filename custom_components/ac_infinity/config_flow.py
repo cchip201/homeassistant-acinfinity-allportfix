@@ -70,9 +70,7 @@ class ACInfinityFlowBase:
             # ConfigFlow - we are setting the integration up for the first time.  Don't add excessive entities.
             return EntityConfigValue.SENSORS_ONLY
 
-        return (
-            data[ConfigurationKey.ENTITIES][device_id][entity_config_key]
-        )
+        return data.get(ConfigurationKey.ENTITIES, {}).get(device_id, {}).get(entity_config_key, EntityConfigValue.ALL)
 
     def _build_entity_config_schema(
         self,
@@ -117,9 +115,10 @@ class ACInfinityFlowBase:
             }
         })
 
-        for i in range(1, port_count + 1):
+        for i in range(0, port_count + 1):
             entity_config_key = f"port_{i}"
-            description_placeholders[entity_config_key] = ac_infinity.get_device_property(device_id, i, DevicePropertyKey.NAME)
+            name = ac_infinity.get_device_property(device_id, i, DevicePropertyKey.NAME) or ("ALL" if i == 0 else f"Port {i}")
+            description_placeholders[entity_config_key] = name
             entities[vol.Required(entity_config_key, default=self.__get_saved_entity_conf_value(data, str(device_id), entity_config_key))] = selector(
                 {
                     "select": {
