@@ -56,7 +56,7 @@ class TestBinarySensors:
             test_objects.entities.add_entities_callback,
         )
 
-        assert len(test_objects.entities._added_entities) == 11
+        assert len(test_objects.entities._added_entities) == 13
 
     async def test_async_setup_entry_entity_created_for_controller(self, setup):
         """Sensor for device port connected is created on setup"""

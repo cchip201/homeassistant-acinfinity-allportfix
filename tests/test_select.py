@@ -42,7 +42,7 @@ class TestSelectors:
             test_objects.entities.add_entities_callback,
         )
 
-        assert len(test_objects.entities._added_entities) == 22
+        assert len(test_objects.entities._added_entities) == 27
 
     @pytest.mark.parametrize(
         "setting",
@@ -538,7 +538,7 @@ class TestSuitableFunctions:
         ]
 
         # Should have 4 entities (one per port) for non-AI controller
-        assert len(device_load_type_entities) == 4
+        assert len(device_load_type_entities) == 5
 
     async def test_suitable_fn_device_setting_basic_controller_returns_false_for_ai(
         self, setup
@@ -588,7 +588,7 @@ class TestSuitableFunctions:
         ]
 
         # Should have 4 entities (one per port)
-        assert len(at_type_entities) == 4
+        assert len(at_type_entities) == 5
 
     async def test_suitable_fn_controller_setting_default_returns_true_for_non_ai(
         self, setup
