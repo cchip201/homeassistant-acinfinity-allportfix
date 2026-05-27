@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   validate-hassfest:
@@ -11,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: validation
         uses: home-assistant/actions/hassfest@master
 
@@ -20,7 +22,7 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: checkout
-        uses: "actions/checkout@v3"
+        uses: actions/checkout@v4
       - name: validation
         uses: "hacs/action@main"
         with:
