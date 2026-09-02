@@ -5,9 +5,8 @@ DateTime
 async-timeout
 pytest
 pytest-mock
-pytest-asyncio
+pytest-asyncio<1.4
 pytest-cov
-aioresponses
 aioresponses
 pyright
 python-dateutil
