@@ -38,6 +38,35 @@ ACINFINITY_API_ERROR = "Retry limit exceeded contacting the AC Infinity API.  Th
 
 _LOGGER = logging.getLogger(__name__)
 
+ALL_DEVICE_PORT = 0
+"""Port index of the synthetic "ALL" group; writing to it drives every port on the controller at once."""
+
+ALL_DEVICE_NAME = "ALL"
+"""Display name of the synthetic "ALL" group device."""
+
+
+def build_device_properties(device_port: int, device_name: str) -> dict[str, Any]:
+    """Builds a synthetic devInfoListAll "ports" entry for a port the API did not report.
+
+    The AC Infinity API omits the "ALL" group from the ports array, and omits the whole array
+    entirely for some controller types.  This is the single source of truth for the stand-in
+    json so that the port list built by ACInfinityController and the property cache populated
+    by ACInfinityService.refresh cannot drift apart.
+    """
+    return {
+        DevicePropertyKey.PORT: device_port,
+        DevicePropertyKey.NAME: device_name,
+        DevicePropertyKey.ONLINE: 1,
+        DevicePropertyKey.STATE: 0,
+        DevicePropertyKey.REMAINING_TIME: 0,
+        DevicePropertyKey.SPEAK: 0,
+    }
+
+
+def build_all_device_properties() -> dict[str, Any]:
+    """Builds the synthetic devInfoListAll "ports" entry for the "ALL" group on port 0."""
+    return build_device_properties(ALL_DEVICE_PORT, ALL_DEVICE_NAME)
+
 
 class ACInfinityController:
     """
@@ -60,30 +89,17 @@ class ACInfinityController:
         self._controller_type = controller_json[ControllerPropertyKey.DEVICE_TYPE]
         self._identifier = (DOMAIN, self._controller_id)
 
-        devices = controller_json[ControllerPropertyKey.DEVICE_INFO].get(ControllerPropertyKey.PORTS) or []
+        # copy the list; the caller's json is the cached API response and must not be mutated
+        devices = list(controller_json[ControllerPropertyKey.DEVICE_INFO].get(ControllerPropertyKey.PORTS) or [])
         port_count = controller_json.get(ControllerPropertyKey.PORT_COUNT, 4)
         if not devices:
             devices = [
-                {
-                    DevicePropertyKey.PORT: port_num,
-                    DevicePropertyKey.NAME: f"Port {port_num}",
-                    DevicePropertyKey.ONLINE: 1,
-                    DevicePropertyKey.STATE: 0,
-                    DevicePropertyKey.REMAINING_TIME: 0,
-                    DevicePropertyKey.SPEAK: 0
-                }
+                build_device_properties(port_num, f"Port {port_num}")
                 for port_num in range(1, port_count + 1)
             ]
 
-        if not any(d.get(DevicePropertyKey.PORT) == 0 for d in devices):
-            devices.insert(0, {
-                DevicePropertyKey.PORT: 0,
-                DevicePropertyKey.NAME: "ALL",
-                DevicePropertyKey.ONLINE: 1,
-                DevicePropertyKey.STATE: 0,
-                DevicePropertyKey.REMAINING_TIME: 0,
-                DevicePropertyKey.SPEAK: 0
-            })
+        if not any(d.get(DevicePropertyKey.PORT) == ALL_DEVICE_PORT for d in devices):
+            devices.insert(0, build_all_device_properties())
 
         self._devices = [ACInfinityDevice(self, device) for device in devices]
 
@@ -628,17 +644,13 @@ class ACInfinityService:
                     self._controller_properties[str(controller_id)] = controller_properties_json
 
                     # retrieve and set controller settings; temperature, humidity, and vpd offsets
-                    controller_settings_json = await self._client.get_device_mode_settings(controller_id, 0)
-                    self._device_settings[(controller_id, 0)] = controller_settings_json[DeviceControlKey.DEV_SETTING]
-                    self._device_controls[(controller_id, 0)] = controller_settings_json
-                    self._device_properties[(controller_id, 0)] = {
-                        DevicePropertyKey.PORT: 0,
-                        DevicePropertyKey.NAME: "ALL",
-                        DevicePropertyKey.ONLINE: 1,
-                        DevicePropertyKey.STATE: 0,
-                        DevicePropertyKey.REMAINING_TIME: 0,
-                        DevicePropertyKey.SPEAK: 0
-                    }
+                    controller_settings_json = await self._client.get_device_mode_settings(controller_id, ALL_DEVICE_PORT)
+                    self._device_settings[(controller_id, ALL_DEVICE_PORT)] = controller_settings_json[DeviceControlKey.DEV_SETTING]
+
+                    # port 0 is the "ALL" group; it is not present in the ports array, so its
+                    # controls and properties are seeded from the controller level response.
+                    self._device_controls[(controller_id, ALL_DEVICE_PORT)] = controller_settings_json
+                    self._device_properties[(controller_id, ALL_DEVICE_PORT)] = build_all_device_properties()
 
                     # controller AI will have a sensor array.
                     if ControllerPropertyKey.SENSORS in controller_properties_json[ControllerPropertyKey.DEVICE_INFO]:
@@ -650,7 +662,8 @@ class ACInfinityService:
                             # set sensor properties; sensor value, unit, and display precision
                             self._sensor_properties[(controller_id, access_port_index, sensor_type)] = sensor_properties_json
 
-                    for device_properties_json in controller_properties_json[ControllerPropertyKey.DEVICE_INFO][ControllerPropertyKey.PORTS]:
+                    ports = controller_properties_json[ControllerPropertyKey.DEVICE_INFO].get(ControllerPropertyKey.PORTS) or []
+                    for device_properties_json in ports:
                         device_port = device_properties_json[DevicePropertyKey.PORT]
 
                         # set port properties; current power and remaining time until a mode switch
