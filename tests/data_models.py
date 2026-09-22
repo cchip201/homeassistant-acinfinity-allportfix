@@ -6,6 +6,7 @@ from custom_components.ac_infinity.const import (
     ControllerType,
     SensorType, ConfigurationKey, EntityConfigValue,
 )
+from custom_components.ac_infinity.core import ALL_DEVICE_PORT, build_all_device_properties
 
 HOST = "https://unittest.abcxyz"
 EMAIL = "myemail@unittest.com"
@@ -66,6 +67,9 @@ LOGIN_PAYLOAD = {
         "createTime": None,
     },
 }
+
+# the "ALL" group is never returned in the ports array; ACInfinityService.refresh synthesises it
+DEVICE_PROPERTY_ALL = build_all_device_properties()
 
 DEVICE_PROPERTY_ONE = {
     "speak": 5,
@@ -868,13 +872,17 @@ SENSOR_PROPERTIES_DATA = {
     (str(AI_DEVICE_ID), UNKNOWN_ACCESS_PORT, 999): SENSOR_PROPERTY_UNKNOWN,
 }
 
+# Mirrors what ACInfinityService.refresh() caches: the "ALL" group on port 0 is seeded from
+# the controller level getDevModeSettingList response, alongside the real ports 1-4.
 DEVICE_PROPERTIES_DATA = {
+    (str(DEVICE_ID), ALL_DEVICE_PORT): DEVICE_PROPERTY_ALL,
     (str(DEVICE_ID), 1): DEVICE_PROPERTY_ONE,
     (str(DEVICE_ID), 2): DEVICE_PROPERTY_TWO,
     (str(DEVICE_ID), 3): DEVICE_PROPERTY_THREE,
     (str(DEVICE_ID), 4): DEVICE_PROPERTY_FOUR,
 }
 DEVICE_CONTROLS_DATA = {
+    (str(DEVICE_ID), ALL_DEVICE_PORT): DEVICE_CONTROLS,
     (str(DEVICE_ID), 1): DEVICE_CONTROLS,
     (str(DEVICE_ID), 2): DEVICE_CONTROLS,
     (str(DEVICE_ID), 3): DEVICE_CONTROLS,
