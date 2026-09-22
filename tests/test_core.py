@@ -1,5 +1,6 @@
 import asyncio
 from asyncio import Future
+from copy import deepcopy
 
 import aiohttp
 import pytest
@@ -458,6 +459,20 @@ class TestACInfinity:
         for device in controller.devices:
             assert device.controller == controller
             assert device.controller.controller_id == str(DEVICE_ID)
+
+    async def test_controller_does_not_mutate_the_json_it_is_given(self, mock_client):
+        """the ALL group must be added to the controller's own port list, not to the caller's json
+
+        controller_json is the cached /api/user/devInfoListAll response; inserting the synthetic
+        port 0 into it leaked the injection back into the service cache.
+        """
+        controller_json = deepcopy(CONTROLLER_PROPERTIES)
+        ports_before = deepcopy(controller_json[ControllerPropertyKey.DEVICE_INFO][ControllerPropertyKey.PORTS])
+
+        controller = ACInfinityController(controller_json)
+
+        assert [device.device_port for device in controller.devices] == [0, 1, 2, 3, 4]
+        assert controller_json[ControllerPropertyKey.DEVICE_INFO][ControllerPropertyKey.PORTS] == ports_before
 
     async def test_controller_sensors_property_returns_empty_for_non_ai(self, mock_client):
         """controller.sensors property should return empty list for non-AI controllers"""

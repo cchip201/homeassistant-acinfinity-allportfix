@@ -25,7 +25,7 @@ from custom_components.ac_infinity.const import (
     DEFAULT_POLLING_INTERVAL,
     DOMAIN,
 )
-from custom_components.ac_infinity.core import ACInfinityService
+from custom_components.ac_infinity.core import ACInfinityService, ALL_DEVICE_NAME
 from tests import ACTestObjects, setup_entity_mocks
 
 from .data_models import (
@@ -651,6 +651,7 @@ class TestConfigFlow:
         schema = call_args[1]["data_schema"]
         assert "controller" in schema.schema
         assert "sensors" in schema.schema
+        assert "port_0" in schema.schema
         assert "port_1" in schema.schema
         assert "port_2" in schema.schema
         assert "port_3" in schema.schema
@@ -660,6 +661,7 @@ class TestConfigFlow:
         description_placeholders = call_args[1]["description_placeholders"]
         assert description_placeholders["controller"] == DEVICE_NAME
         assert description_placeholders["device_code"] == CONTROLLER_PROPERTIES["devCode"]
+        assert description_placeholders["port_0"] == ALL_DEVICE_NAME
         assert description_placeholders["port_1"] == DEVICE_PROPERTY_ONE["portName"]
         assert description_placeholders["port_4"] == DEVICE_PROPERTY_FOUR["portName"]
 
