@@ -26,6 +26,7 @@ from custom_components.ac_infinity.const import (
 )
 from custom_components.ac_infinity.core import (
     ACInfinityController,
+    ACInfinityDevice,
     ACInfinityEntities,
     ACInfinityService,
 )
@@ -51,6 +52,15 @@ from .data_models import (
     DEVICE_PROPERTIES_DATA,
     SENSOR_PROPERTIES_DATA,
 )
+
+
+def get_device(controller: ACInfinityController, port: int) -> ACInfinityDevice:
+    """Returns the device on the given port.
+
+    Address devices by port number rather than by list index; the synthetic "ALL" group is
+    prepended to controller.devices as port 0, so index is no longer port - 1.
+    """
+    return next(device for device in controller.devices if device.device_port == port)
 
 
 @pytest.fixture
@@ -714,7 +724,7 @@ class TestACInfinity:
         ac_infinity._device_controls = DEVICE_CONTROLS_DATA
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
-        await ac_infinity.update_device_control(controller.devices[0], DeviceControlKey.AT_TYPE, 2)
+        await ac_infinity.update_device_control(get_device(controller, 1), DeviceControlKey.AT_TYPE, 2)
 
         mock_client.update_device_controls.assert_called_with(str(DEVICE_ID), 1, {DeviceControlKey.AT_TYPE: 2})
 
@@ -730,7 +740,7 @@ class TestACInfinity:
         ac_infinity._device_controls = DEVICE_CONTROLS_DATA
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
-        await ac_infinity.update_device_controls(controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+        await ac_infinity.update_device_controls(get_device(controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         mock_client.update_device_controls.assert_called_with(str(DEVICE_ID), 1, {DeviceControlKey.AT_TYPE: 2})
 
@@ -748,7 +758,7 @@ class TestACInfinity:
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         with pytest.raises(ACInfinityClientCannotConnect):
-            await ac_infinity.update_device_controls(controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+            await ac_infinity.update_device_controls(get_device(controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         assert mock_client.update_device_controls.call_count == 5
 
@@ -777,7 +787,7 @@ class TestACInfinity:
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         with pytest.raises(type(exception_type)):
-            await ac_infinity.update_device_controls(controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+            await ac_infinity.update_device_controls(get_device(controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         # Should retry 5 times total (initial + 4 retries)
         assert mock_client.update_device_controls.call_count == 5
@@ -798,7 +808,7 @@ class TestACInfinity:
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         with pytest.raises(ACInfinityClientInvalidAuth):
-            await ac_infinity.update_device_controls(controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+            await ac_infinity.update_device_controls(get_device(controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         # Should NOT retry on auth failure
         assert mock_client.update_device_controls.call_count == 1
@@ -819,7 +829,7 @@ class TestACInfinity:
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         with pytest.raises(ValueError):
-            await ac_infinity.update_device_controls(controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+            await ac_infinity.update_device_controls(get_device(controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         # Should NOT retry on unexpected exceptions
         assert mock_client.update_device_controls.call_count == 1
@@ -995,7 +1005,7 @@ class TestACInfinity:
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         await ac_infinity.update_device_setting(
-            controller.devices[0], AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY, 2
+            get_device(controller, 1), AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY, 2
         )
 
         mock_client.update_device_settings.assert_called_with(
@@ -1021,7 +1031,7 @@ class TestACInfinity:
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         await ac_infinity.update_device_settings(
-            controller.devices[0], {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
+            get_device(controller, 1), {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
         )
 
         mock_client.update_device_settings.assert_called_with(
@@ -1046,7 +1056,7 @@ class TestACInfinity:
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         with pytest.raises(ACInfinityClientCannotConnect):
             await ac_infinity.update_device_settings(
-                controller.devices[0], {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
+                get_device(controller, 1), {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
             )
 
         assert mock_client.update_device_settings.call_count == 5
@@ -1077,7 +1087,7 @@ class TestACInfinity:
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         with pytest.raises(type(exception_type)):
             await ac_infinity.update_device_settings(
-                controller.devices[0], {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
+                get_device(controller, 1), {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
             )
 
         # Should retry 5 times total (initial + 4 retries)
@@ -1100,7 +1110,7 @@ class TestACInfinity:
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         with pytest.raises(ACInfinityClientInvalidAuth):
             await ac_infinity.update_device_settings(
-                controller.devices[0], {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
+                get_device(controller, 1), {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
             )
 
         # Should NOT retry on auth failure
@@ -1123,7 +1133,7 @@ class TestACInfinity:
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
         with pytest.raises(ValueError):
             await ac_infinity.update_device_settings(
-                controller.devices[0], {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
+                get_device(controller, 1), {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
             )
 
         # Should NOT retry on unexpected exceptions
@@ -1142,7 +1152,7 @@ class TestACInfinity:
         ac_infinity._device_controls = DEVICE_CONTROLS_DATA
 
         ai_controller = ACInfinityController(AI_CONTROLLER_PROPERTIES)
-        await ac_infinity.update_device_control(ai_controller.devices[0], DeviceControlKey.AT_TYPE, 2)
+        await ac_infinity.update_device_control(get_device(ai_controller, 1), DeviceControlKey.AT_TYPE, 2)
 
         mock_client.update_ai_device_control_and_settings.assert_called_with(
             str(AI_DEVICE_ID), 1, {DeviceControlKey.AT_TYPE: 2}
@@ -1161,7 +1171,7 @@ class TestACInfinity:
         ac_infinity._device_controls = DEVICE_CONTROLS_DATA
 
         ai_controller = ACInfinityController(AI_CONTROLLER_PROPERTIES)
-        await ac_infinity.update_device_controls(ai_controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+        await ac_infinity.update_device_controls(get_device(ai_controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         mock_client.update_ai_device_control_and_settings.assert_called_with(
             str(AI_DEVICE_ID), 1, {DeviceControlKey.AT_TYPE: 2}
@@ -1181,7 +1191,7 @@ class TestACInfinity:
 
         ai_controller = ACInfinityController(AI_CONTROLLER_PROPERTIES)
         await ac_infinity.update_device_settings(
-            ai_controller.devices[0], {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
+            get_device(ai_controller, 1), {AdvancedSettingsKey.DYNAMIC_TRANSITION_HUMIDITY: 2}
         )
 
         mock_client.update_ai_device_control_and_settings.assert_called_with(
@@ -1202,7 +1212,7 @@ class TestACInfinity:
 
         ai_controller = ACInfinityController(AI_CONTROLLER_PROPERTIES)
         with pytest.raises(ACInfinityClientCannotConnect):
-            await ac_infinity.update_device_controls(ai_controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+            await ac_infinity.update_device_controls(get_device(ai_controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         assert mock_client.update_ai_device_control_and_settings.call_count == 5
 
@@ -1231,7 +1241,7 @@ class TestACInfinity:
 
         ai_controller = ACInfinityController(AI_CONTROLLER_PROPERTIES)
         with pytest.raises(type(exception_type)):
-            await ac_infinity.update_device_controls(ai_controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+            await ac_infinity.update_device_controls(get_device(ai_controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         # Should retry 5 times total (initial + 4 retries)
         assert mock_client.update_ai_device_control_and_settings.call_count == 5
@@ -1252,7 +1262,7 @@ class TestACInfinity:
 
         ai_controller = ACInfinityController(AI_CONTROLLER_PROPERTIES)
         with pytest.raises(ACInfinityClientInvalidAuth):
-            await ac_infinity.update_device_controls(ai_controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+            await ac_infinity.update_device_controls(get_device(ai_controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         # Should NOT retry on auth failure
         assert mock_client.update_ai_device_control_and_settings.call_count == 1
@@ -1273,7 +1283,7 @@ class TestACInfinity:
 
         ai_controller = ACInfinityController(AI_CONTROLLER_PROPERTIES)
         with pytest.raises(ValueError):
-            await ac_infinity.update_device_controls(ai_controller.devices[0], {DeviceControlKey.AT_TYPE: 2})
+            await ac_infinity.update_device_controls(get_device(ai_controller, 1), {DeviceControlKey.AT_TYPE: 2})
 
         # Should NOT retry on unexpected exceptions
         assert mock_client.update_ai_device_control_and_settings.call_count == 1
@@ -1367,7 +1377,7 @@ class TestACInfinity:
         )
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
-        device = controller.devices[port - 1]
+        device = get_device(controller, port)
 
         entity = ACInfinityDeviceSensorEntity(
             test_objects.coordinator,
@@ -1435,7 +1445,7 @@ class TestACInfinity:
         )
 
         controller = ACInfinityController(CONTROLLER_PROPERTIES)
-        device = controller.devices[port - 1]
+        device = get_device(controller, port)
 
         # Convert at_type_filter integer to lambda function
         if at_type_filter is None:
