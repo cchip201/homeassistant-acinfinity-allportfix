@@ -6,7 +6,7 @@ async-timeout
 pytest
 pytest-mock
 pytest-asyncio<1.4
-pytest-cov
+coverage
 aioresponses
 pyright
 python-dateutil
