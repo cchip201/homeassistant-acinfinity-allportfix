@@ -43,7 +43,8 @@ class TestSwitches:
             test_objects.entities.add_entities_callback,
         )
 
-        assert len(test_objects.entities._added_entities) == 52
+        # 5 ports (ALL + 4) x 13 switches on the non-AI controller; no controller level switches
+        assert len(test_objects.entities._added_entities) == 65
 
     @pytest.mark.parametrize(
         "setting",
