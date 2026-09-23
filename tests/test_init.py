@@ -122,6 +122,60 @@ class TestInit:
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
 
+    async def test_update_keeps_previous_data_while_a_write_holds_the_lock(self, mocker: MockFixture, setup):
+        """A poll during a control write returns the last data instead of waiting on the write's retry loop"""
+        (hass, config_entry) = setup
+
+        client = ACInfinityClient(HOST, EMAIL, PASSWORD)
+        ac_infinity = ACInfinityService(client)
+        refresh = mocker.patch.object(ac_infinity, "refresh", new_callable=AsyncMock)
+        coordinator = ACInfinityDataUpdateCoordinator(
+            hass, config_entry, ac_infinity, 10
+        )
+        setattr(coordinator, "data", ac_infinity)
+
+        assert not ac_infinity.update_in_progress
+        async with ac_infinity._update_lock:
+            assert ac_infinity.update_in_progress
+            result = await coordinator._async_update_data()
+
+        assert result is ac_infinity
+        refresh.assert_not_called()
+
+    async def test_update_refreshes_when_no_write_is_in_flight(self, mocker: MockFixture, setup):
+        """With no write holding the lock, a poll refreshes as before"""
+        (hass, config_entry) = setup
+
+        client = ACInfinityClient(HOST, EMAIL, PASSWORD)
+        ac_infinity = ACInfinityService(client)
+        refresh = mocker.patch.object(ac_infinity, "refresh", new_callable=AsyncMock)
+        coordinator = ACInfinityDataUpdateCoordinator(
+            hass, config_entry, ac_infinity, 10
+        )
+        setattr(coordinator, "data", ac_infinity)
+
+        result = await coordinator._async_update_data()
+
+        assert result is ac_infinity
+        refresh.assert_awaited_once()
+
+    async def test_first_update_refreshes_even_while_the_lock_is_held(self, mocker: MockFixture, setup):
+        """The first poll has no previous data to keep, so it still refreshes"""
+        (hass, config_entry) = setup
+
+        client = ACInfinityClient(HOST, EMAIL, PASSWORD)
+        ac_infinity = ACInfinityService(client)
+        refresh = mocker.patch.object(ac_infinity, "refresh", new_callable=AsyncMock)
+        coordinator = ACInfinityDataUpdateCoordinator(
+            hass, config_entry, ac_infinity, 10
+        )
+
+        async with ac_infinity._update_lock:
+            result = await coordinator._async_update_data()
+
+        assert result is ac_infinity
+        refresh.assert_awaited_once()
+
     async def test_async_migrate_entry_version_1_to_2_success(self, mocker: MockFixture):
         """Test successful migration from version 1 to version 2"""
         # Create a version 1 config entry (without entity configuration)

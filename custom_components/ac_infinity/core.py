@@ -380,6 +380,11 @@ class ACInfinityService:
         self._client = client
         self._update_lock = asyncio.Lock()
 
+    @property
+    def update_in_progress(self) -> bool:
+        """True while a control or settings write holds the update lock, its retry loop included"""
+        return self._update_lock.locked()
+
     def get_device_ids(self) -> list[str]:
         """
         returns a list of devices associated with the account
@@ -943,6 +948,14 @@ class ACInfinityDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Fetch data from the AC Infinity API"""
+        # A control write holds the update lock for its whole retry loop - about 30 s when the
+        # cloud rejects it (code 100001, five attempts one second apart). refresh() waits for that
+        # lock, and it used to do so inside the 10 s budget below, so every rejected write became
+        # a failed poll and every entity went unavailable until the write gave up. The values are
+        # about to change anyway: keep the last good data for this cycle and poll on the next.
+        if self.data is not None and self._ac_infinity.update_in_progress:
+            _LOGGER.debug("Control update in progress; keeping the previous data for this poll")
+            return self.data
         _LOGGER.debug("Refreshing data from data update coordinator")
         try:
             async with async_timeout.timeout(10):
