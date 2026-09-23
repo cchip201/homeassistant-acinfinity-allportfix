@@ -1,6 +1,16 @@
 name: Release
 
+# A pushed v* tag publishes its own release (2026-09-23). HACS offers a version only once its
+# GitHub release is PUBLISHED - a bare tag is invisible to it - and publishing was a manual click
+# in the GitHub UI, the one step of a fork update that the agent maintaining this fork cannot
+# take (it pushes over SSH; nothing it holds can call the release API). v2.3.3 waited on that
+# click. The release trigger stays, so a release published by hand still gets its zip.
+#
+# A release created here with GITHUB_TOKEN does not fire `release: published` (GitHub does not
+# start workflows from GITHUB_TOKEN events), so the zip is built in this same run instead.
 on:
+  push:
+    tags: ['v*']
   release:
     types: [published]
 
@@ -14,6 +24,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Publish the release for a pushed tag
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $TAG already exists - leaving it as it is"
+            exit 0
+          fi
+          flags=""
+          case "$TAG" in *-rc*|*-beta*|*-alpha*) flags="--prerelease" ;; esac
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --generate-notes $flags
       - name: Archive Release
         uses: thedoctor0/zip-release@0.7.1
         with:
