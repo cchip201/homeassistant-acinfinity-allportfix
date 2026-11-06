@@ -29,6 +29,10 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# Home Assistant 2026.11 aliases `voluptuous` to probatio at runtime (homeassistant/__init__.py), so vol.Schema
+# is probatio.Schema there; pyright still resolves the installed voluptuous package and flags the
+# data_schema arguments below. The fork supports older Home Assistant (hacs.json), so the import stays.
+
 # Individual entity configuration option constants
 OPTION_ALL_ENTITIES = {"value": EntityConfigValue.ALL, "label": "Sensors, Controls, and Settings"}
 OPTION_SENSORS_AND_SETTINGS = {"value": EntityConfigValue.SENSORS_AND_SETTINGS, "label": "Sensors and Settings"}
@@ -191,7 +195,7 @@ class ConfigFlow(ACInfinityFlowBase, config_entries.ConfigFlow, domain=DOMAIN): 
                 errors["base"] = "unknown"
 
         return self.async_show_form(
-            step_id="user", data_schema=CONFIG_SCHEMA, errors=errors
+            step_id="user", data_schema=CONFIG_SCHEMA, errors=errors  # pyright: ignore[reportArgumentType]
         )
 
     async def async_step_enable_entities(self, user_input: dict[str, Any] | None = None):
@@ -219,7 +223,7 @@ class ConfigFlow(ACInfinityFlowBase, config_entries.ConfigFlow, domain=DOMAIN): 
 
         return self.async_show_form(
             step_id="enable_entities",
-            data_schema=vol.Schema(entities),
+            data_schema=vol.Schema(entities),  # pyright: ignore[reportArgumentType]
             errors=errors,
             description_placeholders=description_placeholders
         )
@@ -311,7 +315,7 @@ class OptionsFlow(ACInfinityFlowBase, config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="general_config",
-            data_schema=vol.Schema(
+            data_schema=vol.Schema(  # pyright: ignore[reportArgumentType]
                 {
                     vol.Required(ConfigurationKey.POLLING_INTERVAL,
                                  default=self.__get_saved_conf_value(ConfigurationKey.POLLING_INTERVAL,
@@ -344,7 +348,7 @@ class OptionsFlow(ACInfinityFlowBase, config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="controller_select",
-            data_schema=vol.Schema({
+            data_schema=vol.Schema({  # pyright: ignore[reportArgumentType]
                 vol.Required("device_id"): selector({
                     "select": {
                         "options": options
@@ -379,7 +383,7 @@ class OptionsFlow(ACInfinityFlowBase, config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="enable_entities",
-            data_schema=vol.Schema(entities),
+            data_schema=vol.Schema(entities),  # pyright: ignore[reportArgumentType]
             errors=errors,
             description_placeholders=description_placeholders
         )
