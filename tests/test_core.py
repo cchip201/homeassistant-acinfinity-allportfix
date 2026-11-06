@@ -1490,3 +1490,56 @@ class TestACInfinity:
 
         # Check availability
         assert entity.available == expected_available
+
+    async def test_device_entity_device_info_links_to_controller_device(self, setup, mocker: MockFixture):
+        """The port entity's device_info carries via_device_id when the controller device is registered.
+
+        Home Assistant 2026.11 made DeviceInfo keyword-only (DeviceInfo.__init__() takes 1 positional
+        argument), so a dict passed as the single positional argument raised TypeError and no port
+        entity was added.
+        """
+        from custom_components.ac_infinity.core import ACInfinityDeviceEntity
+        from custom_components.ac_infinity.const import DevicePropertyKey
+
+        test_objects: ACTestObjects = setup
+        controller = ACInfinityController(CONTROLLER_PROPERTIES)
+        device = get_device(controller, 1)
+
+        entity = ACInfinityDeviceEntity(
+            test_objects.coordinator,
+            device,
+            lambda entry, device_id, entity_config_key: True,
+            lambda e, d: True,
+            None,
+            DevicePropertyKey.SPEAK,
+            "sensor",
+        )
+        mocker.patch.object(entity, "_resolve_via_device_id", return_value="controller-device-id")
+
+        device_info = entity.device_info
+
+        assert device_info.get("via_device_id") == "controller-device-id"
+        assert device_info.get("identifiers") == device.device_info.get("identifiers")
+
+    async def test_sensor_entity_device_info_links_to_controller_device(self, setup, mocker: MockFixture):
+        """Same keyword-only DeviceInfo requirement for a sensor-port entity (Home Assistant 2026.11)."""
+        from custom_components.ac_infinity.core import ACInfinitySensorEntity
+
+        test_objects: ACTestObjects = setup
+        controller = ACInfinityController(AI_CONTROLLER_PROPERTIES)
+        sensor = next(s for s in controller.sensors if s.device_info is not controller.device_info)
+
+        entity = ACInfinitySensorEntity(
+            test_objects.coordinator,
+            sensor,
+            lambda entry, device_id, entity_config_key: True,
+            lambda e, s: True,
+            "sensor_key",
+            "sensor",
+        )
+        mocker.patch.object(entity, "_resolve_via_device_id", return_value="controller-device-id")
+
+        device_info = entity.device_info
+
+        assert device_info.get("via_device_id") == "controller-device-id"
+        assert device_info.get("identifiers") == sensor.device_info.get("identifiers")
